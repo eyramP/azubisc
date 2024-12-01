@@ -15,6 +15,7 @@ services:
     depends_on:
       - postgres
       - mailhog
+      - redis
     command: /start
     networks:
       - azubicsc-api
@@ -36,6 +37,46 @@ services:
     container_name: mailhogtwo
     ports:
       - "8027:8025"
+    networks:
+      - azubicsc-api
+
+  redis:
+    image: redis:7-alpine
+    networks:
+      - azubicsc-api
+
+  celery_worker:
+    build:
+      context: .
+      dockerfile: ./docker/local/django/Dockerfile
+    command: /start-celeryworker
+    volumes:
+      - .:/app
+    env_file:
+      - ./.envs/.local/.django
+      - ./.envs/.local/.postgres
+    depends_on:
+      - redis
+      - postgres
+      - mailhog
+    networks:
+      - azubicsc-api
+
+  flower:
+    build:
+      context: .
+      dockerfile: ./docker/local/django/Dockerfile
+    command: /start-flower
+    volumes:
+      - flower_data:/data
+    env_file:
+      - ./.envs/.local/.django
+      - ./.envs/.local/.postgres
+    ports:
+      - "5555:5555"
+    depends_on:
+      - redis
+      - postgres
     networks:
       - azubicsc-api
 
@@ -61,6 +102,7 @@ networks:
 volumes:
   static_volume:
   media_volume:
-  local_postgres_data:
-  local_postgres_data_backups:
+  local_postgres_data: {}
+  local_postgres_data_backups: {}
+  flower_data: {}
 
