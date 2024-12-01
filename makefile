@@ -33,3 +33,9 @@ rs:
 
 su:
 	docker compose -f local.yml run --rm api python manage.py createsuperuser
+
+prune_images:
+	docker image prune
+
+prune_volumes:
+	docker volume prune
