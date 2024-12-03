@@ -10,7 +10,8 @@ DEBUG = True
 
 CSRF_TRUSTED_ORIGINS = ['http://127.0.0.1:9090']
 
-EMAIL_BACKEND = 'djcelery_email.backends.CeleryEmailBackend'
+# EMAIL_BACKEND = "djcelery_email.backends.CeleryEmailBackend"
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = env('EMAIL_HOST', default='mailhog')
 EMAIL_PORT = env('EMAIL_PORT')
 DEFAULT_FROM_EMAIL = 'support@azubisc.site'
