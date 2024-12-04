@@ -32,7 +32,7 @@ THIRD_PARTY_APPS = [
     'allauth',
     'allauth.socialaccount',
     'dj_rest_auth',
-    'dj_rest_auth.registration', # Required for Allauth
+    'dj_rest_auth.registration',
     'allauth.account',
 ]
 
@@ -40,7 +40,7 @@ LOCAL_APPS = [
     'core.users',
     'core.store',
     'core.profiles',
-    'core.common'
+    'core.common',
 ]
 
 INSTALLED_APPS = DJANGO_APPS + LOCAL_APPS + THIRD_PARTY_APPS

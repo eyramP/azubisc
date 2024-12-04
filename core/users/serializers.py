@@ -1,4 +1,5 @@
 from dj_rest_auth.registration.serializers import RegisterSerializer
+from django.contrib.auth.hashers import make_password
 from allauth.account.adapter import get_adapter
 from allauth.account.utils import setup_user_email
 from rest_framework import serializers
@@ -62,3 +63,39 @@ class CustomRegisterSerializer(RegisterSerializer):
         user.last_name = self.cleaned_data.get('last_name')
 
         return user
+
+
+class RegisterAdminUserSerializer(serializers.ModelSerializer):
+    confirm_password = serializers.CharField(write_only=True)
+
+    class Meta:
+        model = User
+        fields = [
+            'id', 'first_name', 'last_name', 'email', 'password', 'confirm_password']
+        extra_kwargs = {
+            'password': {'write_only': True}
+        }
+
+    def validate(self, attrs):
+        password = attrs.get('password')
+        confirm_password = attrs.get('confirm_password')
+        email = attrs.get('email')
+
+        if User.objects.filter(email=email).exists():
+            raise serializers.ValidationError({"error": 'A user with this email already exists.'})
+        if password != confirm_password:
+            raise serializers.ValidationError({"password": "Passwords do not match."})
+        if len(password) < 6:
+            raise serializers.ValidationError({"password": "Password must be at least 6 charactera."})
+
+        return attrs
+
+    def create(self, validated_data):
+        validated_data.pop('confirm_password')
+        validated_data['password'] = make_password(validated_data['password'])
+        validated_data['is_staff'] = True
+        validated_data['is_superuser'] = True
+
+        return self.Meta.model.objects.create(**validated_data)
+
+
