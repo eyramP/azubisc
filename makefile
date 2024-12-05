@@ -39,3 +39,6 @@ prune_images:
 
 prune_volumes:
 	docker volume prune
+
+pytest:
+	docker compose -f local.yml run --rm api pytest -v

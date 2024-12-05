@@ -1,8 +1,9 @@
 from rest_framework import serializers
 from .models import (
     Category, Product, ProductImage, Cart, CartItem,
-    Order, OrderItem, Review, Wishlist
+    Order, OrderItem, ProductImageUpload, Review, Wishlist
 )
+from core.users.serializers import UserSerializer
 
 
 # Category Serializer
@@ -26,7 +27,27 @@ class ProductImageSerializer(serializers.ModelSerializer):
     """
     class Meta:
         model = ProductImage
-        fields = ['id', 'product', 'image', 'alt_text']
+        fields = ['id', 'image', 'alt_text']
+
+
+class ProductImageUploadSerializer(serializers.ModelSerializer):
+    image = serializers.ImageField(read_only=True)
+
+    class Meta:
+        model = ProductImageUpload
+        fields = ["id", "image"]
+
+
+class CreaeteProductImageUploadSerializer(serializers.Serializer):
+    images = serializers.ListField(
+        child=serializers.FileField(
+            max_length=1000000,
+            allow_empty_file=False,
+            use_url=False
+        ),
+        write_only=True,
+        allow_empty=False
+    )
 
 
 # Product Serializer
@@ -35,14 +56,31 @@ class ProductSerializer(serializers.ModelSerializer):
     Serializer for the Product model.
     Includes related images.
     """
+    category = CategorySerializer(read_only=True)
+    category_id = serializers.PrimaryKeyRelatedField(
+        queryset=Category.objects.all(), write_only=True,
+        source='category'
+    )
     images = ProductImageSerializer(many=True, read_only=True)
+    image_urls = serializers.ListField(
+        child=serializers.CharField(),
+        write_only=True,
+        allow_empty=True,
+        required=False
+    )
 
     class Meta:
         model = Product
         fields = [
-            'id', 'name', 'description', 'price', 'category',
-            'stock', 'created_at', 'updated_at', 'images'
+            'id', 'name', 'price', 'category', 'category_id',
+            'stock', 'created_at', 'updated_at', 'images', 'image_urls'
         ]
+
+
+class SimpleProductSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Product
+        fields = ['id', 'name', 'price']
 
 
 # Cart Item Serializer
@@ -51,11 +89,15 @@ class CartItemSerializer(serializers.ModelSerializer):
     Serializer for CartItem model.
     Includes the related product details.
     """
-    product = ProductSerializer(read_only=True)
+    product = SimpleProductSerializer(read_only=True)
+    product_id = serializers.PrimaryKeyRelatedField(
+        write_only=True, queryset=Product.objects.all(),
+        source='product'
+    )
 
     class Meta:
         model = CartItem
-        fields = ['id', 'cart', 'product', 'quantity']
+        fields = ['id', 'product', 'quantity', 'product_id']
 
 
 # Cart Serializer
@@ -65,6 +107,7 @@ class CartSerializer(serializers.ModelSerializer):
     Includes related cart items.
     """
     items = CartItemSerializer(many=True, read_only=True)
+    user = UserSerializer(read_only=True)
 
     class Meta:
         model = Cart
@@ -125,3 +168,5 @@ class WishlistSerializer(serializers.ModelSerializer):
     class Meta:
         model = Wishlist
         fields = ['id', 'user', 'product', 'created_at']
+
+

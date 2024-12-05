@@ -53,13 +53,17 @@ class ProductImage(models.Model):
     product = models.ForeignKey(
         Product, on_delete=models.CASCADE, related_name="images", help_text="The product this image belongs to."
     )
-    image = models.ImageField(upload_to="product_images/", help_text="Image file of the product.")
+    image = models.URLField(max_length=500)
     alt_text = models.CharField(
         max_length=255, blank=True, help_text="Alternate text for the image (for accessibility)."
     )
 
     def __str__(self):
         return f"Image for {self.product.name}"
+
+
+class ProductImageUpload(models.Model):
+    image = models.ImageField(upload_to='products/images')
 
 
 # Cart Model ///////////////////////

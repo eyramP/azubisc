@@ -99,3 +99,6 @@ class RegisterAdminUserSerializer(serializers.ModelSerializer):
         return self.Meta.model.objects.create(**validated_data)
 
 
+class AdminLoginSerializer(serializers.Serializer):
+    email = serializers.EmailField()
+    password = serializers.CharField(write_only=True)
